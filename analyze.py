@@ -25,9 +25,11 @@ class ASANError:
 
 
 match_str = r"==(\w+)==ERROR.*pc (\w+) bp (\w+) sp (\w+)"
+fuzzgoat_line = r"/src/fuzzgoat.c:(\w+)"
 main_line = r"/src/main.c:(\w+)"
 regex = re.compile(match_str)
 main_regex = re.compile(main_line)
+fuzzgoat_regex = re.compile(fuzzgoat_line)
 
 d = defaultdict(list)
 
@@ -41,19 +43,26 @@ if __name__ == "__main__":
                 cmd = f"./fuzzgoat_ASAN {root}/{file}"
                 print(cmd)
                 output = subprocess.run(cmd, shell=True, capture_output=True)
-                print(output.stdout)
-                print(output.stderr)
+                print(output.stdout.decode())
+                print(output.stderr.decode())
                 error_data = output.stderr
-                data = error_data.decode("utf-8")
+                data = error_data.decode()
                 main_line_match = main_regex.search(data)
+                fuzzgoat_line_match = fuzzgoat_regex.search(data)
                 match = regex.search(data)
-                if match and main_line_match:
-                    (main_line,) = main_line_match.groups()
+                if match:
+                    line = "unknown"
+                    if fuzzgoat_line_match:
+                        (fuzzgoat_line,) = fuzzgoat_line_match.groups()
+                        line = f"fuzzgoat.c:{fuzzgoat_line}"
+                    if main_line_match:
+                        (main_line,) = main_line_match.groups()
+                        line = f"main.c:{main_line}"
                     # if main_line_match:
                     # main_line = main_line_match.groups()
                     num, pc, bp, sp = match.groups()
                     err = ASANError(pc, bp, sp)
-                    d[main_line].append(num)
+                    d[line].append(num)
                     print(err)
                 else:
                     print("No match")
