@@ -24,10 +24,12 @@ class ASANError:
         return hash((self.pc, self.bp, self.sp))
 
 
-match_str = r"==(\w+)==ERROR.*pc (\w+) bp (\w+) sp (\w+)"
+error_str = r"==(\w+)==ERROR"
+match_str = r"pc (\w+) bp (\w+) sp (\w+)"
 fuzzgoat_line = r"/src/fuzzgoat.c:(\w+)"
 main_line = r"/src/main.c:(\w+)"
 regex = re.compile(match_str)
+error_regex = re.compile(error_str)
 main_regex = re.compile(main_line)
 fuzzgoat_regex = re.compile(fuzzgoat_line)
 
@@ -50,7 +52,9 @@ if __name__ == "__main__":
                 main_line_match = main_regex.search(data)
                 fuzzgoat_line_match = fuzzgoat_regex.search(data)
                 match = regex.search(data)
-                if match:
+                error_match = error_regex.search(data)
+                if error_match:
+                    (error_num,) = error_match.groups()
                     line = "unknown"
                     if fuzzgoat_line_match:
                         (fuzzgoat_line,) = fuzzgoat_line_match.groups()
@@ -60,10 +64,9 @@ if __name__ == "__main__":
                         line = f"main.c:{main_line}"
                     # if main_line_match:
                     # main_line = main_line_match.groups()
-                    num, pc, bp, sp = match.groups()
-                    err = ASANError(pc, bp, sp)
-                    d[line].append(num)
-                    print(err)
+                    # pc, bp, sp = match.groups()
+                    # err = ASANError(pc, bp, sp)
+                    d[line].append(error_num)
                 else:
                     print("No match")
                 print("------")
