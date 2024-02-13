@@ -22,6 +22,7 @@ RUN git clone https://github.com/fuzzstati0n/fuzzgoat /src && \
 
 COPY layout.kdl /etc/zellij/layout.kdl
 COPY run_nodes.py /src/run_nodes.py
+COPY analyze.py /src/analyze.py
 
 ENV SHELL="/usr/bin/bash"
 CMD ["/usr/local/bin/zellij", "--layout", "/etc/zellij/layout.kdl"]
