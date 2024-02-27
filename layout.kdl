@@ -384,7 +384,7 @@ layout {
   }
   def-tab name="fuzz-main" {
     pane command="bash" cwd="/src/" {
-      args "-c" "AFL_FINAL_SYNC=1 afl-fuzz -i in -o sync_dir -M f_main ./fuzzgoat @@"
+      args "-c" "AFL_FINAL_SYNC=1 afl-fuzz -i seeds -o sync_dir -M f_main ./fuzz_harness @@"
     }
   }
   def-tab name="fuzz-asan" {

@@ -36,14 +36,12 @@ random.seed(42)
 
 
 # Run zellij action go-to-tab-name "fuzz-nodes"
-subprocess.run(
-    [
-        "zellij",
-        "action",
-        "go-to-tab-name",
-        "fuzz-nodes",
-    ],
-)
+fuzz_nodes_tab = [
+    "zellij",
+    "action",
+    "go-to-tab-name",
+    "fuzz-nodes",
+]
 cores = os.cpu_count() or 8
 # We want to leave 3 cores free for the rest of the system
 # 1 main node, 1 ubsan node, 1 left for user
@@ -55,6 +53,7 @@ for i in range(num_workers):
         extra_options.extend(*random.choices(args, weights=weights, k=1))
     print(extra_options)
     # zellij action new-pane -- afl-fuzz -i in -o sync_dir -S f0$i ./fuzzgoat @@
+    subprocess.run(fuzz_nodes_tab)
     cmd = [
         "zellij",
         "action",
@@ -62,13 +61,13 @@ for i in range(num_workers):
         "--",
         "afl-fuzz",
         "-i",
-        "in",
+        "seeds",
         "-o",
         "sync_dir",
         "-S",
         "s{:0>{}}".format(i, 2),
         *extra_options,
-        "./fuzzgoat",
+        "./fuzz_harness",
         "@@",
     ]
     print(" ".join(cmd))

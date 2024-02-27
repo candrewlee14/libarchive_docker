@@ -16,13 +16,32 @@ RUN apt-get update && \
   apt-get install -y htop && \
   rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/fuzzstati0n/fuzzgoat /src && \
+# RUN git clone https://github.com/fuzzstati0n/fuzzgoat /src && \
+#   cd /src && \
+#   make
+
+ENV CC="afl-gcc"
+
+RUN git clone https://github.com/libarchive/libarchive.git /src && \
   cd /src && \
+  cmake . && \
   make
+
+RUN cd /src && \
+  git clone --depth=1 https://github.com/corkami/pocs && \
+  mkdir seeds && \
+  mv pocs/zip/*.zip ./seeds && \
+  mv pocs/rar/*.rar ./seeds
+
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/src/libarchive"
 
 COPY layout.kdl /etc/zellij/layout.kdl
 COPY run_nodes.py /src/run_nodes.py
 COPY analyze.py /src/analyze.py
+
+COPY fuzz_harness.cc /src/fuzz_harness.cc
+RUN cd /src && \
+  afl-g++ -o ./fuzz_harness fuzz_harness.cc -I/src/libarchive -L/src/libarchive -larchive -Wl,--trace 
 
 ENV SHELL="/usr/bin/bash"
 CMD ["/usr/local/bin/zellij", "--layout", "/etc/zellij/layout.kdl"]
